@@ -13,10 +13,15 @@ export const passwordSchema = z
 // Create User schema
 export const createUserSchema = z
   .object({
-    name: z
+    username: z
       .string()
-      .min(3, "Name must be at least 3 characters long")
-      .max(100, "Name must be under 100 characters"),
+      .min(3, "Username must be at least 3 characters long")
+      .max(50, "Username must not exceed 50 characters"),
+
+    fullName: z
+      .string()
+      .min(3, "Full name must be at least 3 characters long")
+      .max(100, "Full name must not exceed 100 characters"),
 
     email: z.string().email("Invalid email format"),
 
@@ -35,7 +40,10 @@ export const createUserSchema = z
       .string()
       .regex(/^\+?[0-9]{10,15}$/, "Phone number must be valid"),
 
-    memberSince: z.date().optional(),
+    memberSince: z
+      .string()
+      .optional()
+      .transform((val) => (val ? new Date(val) : undefined)),
 
     role: z.enum(["admin", "user"]).default("user"),
   })

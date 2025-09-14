@@ -1,4 +1,6 @@
+import bcrypt from "bcryptjs";
 import { Schema, Document, model } from "mongoose";
+import jwt, { Secret, SignOptions } from "jsonwebtoken";
 
 // User roles
 export enum UserRole {
@@ -8,20 +10,26 @@ export enum UserRole {
 
 // User interface
 export interface IUser extends Document {
-  name: string;
+  username: string;
   email: string;
   password: string;
+  fullName: string;
   address: string;
   phoneNumber: string;
   memberSince: Date;
   avatar?: string;
   role: UserRole;
+
+  // methods
+  isPasswordCorrect(password: string): Promise<boolean>;
+  generateAccessToken(): string;
+  generateRefreshToken(): string;
 }
 
 // User schema
 const userSchema = new Schema<IUser>(
   {
-    name: {
+    username: {
       type: String,
       required: true,
       trim: true,
@@ -31,6 +39,11 @@ const userSchema = new Schema<IUser>(
       required: true,
       unique: true,
       lowercase: true,
+    },
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -58,5 +71,45 @@ const userSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+userSchema.methods.isPasswordCorrect = async function (password: any) {
+  return await bcrypt.compare(password, this.password);
+};
+
+userSchema.methods.generateAccessToken = function (): string {
+  const payload = {
+    _id: this._id.toString(),
+    email: this.email,
+    username: this.username,
+    fullName: this.fullName,
+  };
+
+  const secret: Secret = process.env.ACCESS_TOKEN_SECRET as Secret;
+
+  const options: SignOptions = {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"],
+  };
+
+  return jwt.sign(payload, secret, options);
+};
+
+userSchema.methods.generateRefreshToken = function (): string {
+  const payload = { _id: this._id.toString() };
+
+  const secret: Secret = process.env.REFRESH_TOKEN_SECRET as Secret;
+
+  const options: SignOptions = {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRY as jwt.SignOptions["expiresIn"],
+  };
+
+  return jwt.sign(payload, secret, options);
+};
 
 export const User = model<IUser>("User", userSchema);

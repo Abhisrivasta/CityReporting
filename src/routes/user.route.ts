@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { registerUser,loginUser } from "../controller/user.controller.js";
-import { validate } from "../middleware/validate.middleware.js";
-import { createUserSchema,loginUserSchema } from "../validator/validate.js";
-import type { AnyZodObject } from "zod/v3";
+import { loginUser, registerUser, } from "../controller/user.controller.ts";
+import { validate } from "../middleware/validate.middleware.ts";
+import { createUserSchema,loginUserSchema } from "../validator/validate.zod.ts";
+import { verifyJWT } from "../middleware/auth.middleware.ts";
 
 const router = Router();
-router.post("/register", validate(createUserSchema as unknown as AnyZodObject), registerUser);
-router.post("/login", validate(loginUserSchema as unknown as AnyZodObject), loginUser);
+router.post("/register",validate(createUserSchema),registerUser);
+
+router.post("/login",validate(loginUserSchema),loginUser);
+
+
 
 export default router;
-  
