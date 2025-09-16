@@ -41,7 +41,8 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
 
-  return res.json(
+  return res.status(200).json(
     new ApiResponse(200, { accessToken, refreshToken }, "Login successful")
   );
 });
+

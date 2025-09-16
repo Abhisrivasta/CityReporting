@@ -1,26 +1,24 @@
 import express from "express";
 import dotenv from "dotenv";
-// import cors from "cors";
 import { connectDB } from "./config/db.config.ts";
 import userRoutes from "./routes/user.route.ts";
+import userReport from "./routes/report.route.ts"
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
-// app.use(cors());
+
 app.use(express.json());
 
 // Routes
 app.use("/api/users", userRoutes);
+app.use("/api/userreport",userReport)
 
-// Default route
 app.get("/", (req, res) => {
   res.send("Smart City API is running!");
 });
 
-// Start server after DB connection
 const startServer = async () => {
   try {
     await connectDB();

@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Password schema 
 export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters long")
@@ -10,7 +9,6 @@ export const passwordSchema = z
   .regex(/\d/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
-// Create User schema
 export const createUserSchema = z
   .object({
     username: z
@@ -52,12 +50,10 @@ export const createUserSchema = z
     path: ["confirmPassword"],
   });
 
-// Login User schema
 export const loginUserSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
-// Types
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type LoginUserInput = z.infer<typeof loginUserSchema>;
