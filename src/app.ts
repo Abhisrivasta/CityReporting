@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/users", userRoutes);
-app.use("/api/userreport",userReport)
+app.use("/api/reports",userReport)
 
 app.get("/", (req, res) => {
   res.send("Smart City API is running!");

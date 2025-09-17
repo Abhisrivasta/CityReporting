@@ -42,7 +42,18 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const refreshToken = user.generateRefreshToken();
 
   return res.status(200).json(
-    new ApiResponse(200, { accessToken, refreshToken }, "Login successful")
+    new ApiResponse(
+      200,
+      {
+        id: user._id,           
+        email: user.email,      
+        role: user.role,         
+        accessToken,
+        refreshToken,
+      },
+      "Login successful"
+    )
   );
 });
+
 
