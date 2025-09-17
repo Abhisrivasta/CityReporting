@@ -12,8 +12,11 @@ router.post(
   createReportHandler
 );
 
+
+//get all reports
 router.get("/", verifyJWT, getReportHandler);
 
+//get report by id 
 router.get("/:reportId", verifyJWT, getReportByIdHandler);
 
 export default router;

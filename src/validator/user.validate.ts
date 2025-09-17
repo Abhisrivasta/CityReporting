@@ -1,5 +1,23 @@
 import { z } from "zod";
 
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username must be at least 3 characters long")
+  .max(20, "Username must not exceed 20 characters")
+  .regex(
+    /^[a-zA-Z][a-zA-Z0-9._]*$/,
+    "Username must start with a letter and can only contain letters, numbers, underscores, and dots"
+  )
+  .regex(
+    /^(?!.*[_.]{2})/,
+    "Username cannot contain consecutive underscores or dots"
+  )
+  .regex(
+    /^(?!.*[_.]$)/,
+    "Username cannot end with an underscore or dot"
+  );
+
 export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters long")
@@ -9,19 +27,18 @@ export const passwordSchema = z
   .regex(/\d/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
+
 export const createUserSchema = z
   .object({
-    username: z
-      .string()
-      .min(3, "Username must be at least 3 characters long")
-      .max(50, "Username must not exceed 50 characters"),
+    username: usernameSchema,
 
     fullName: z
       .string()
+      .trim()
       .min(3, "Full name must be at least 3 characters long")
       .max(100, "Full name must not exceed 100 characters"),
 
-    email: z.string().email("Invalid email format"),
+    email: z.string().trim().email("Invalid email format"),
 
     password: passwordSchema,
 
@@ -31,17 +48,16 @@ export const createUserSchema = z
 
     address: z
       .string()
+      .trim()
       .min(5, "Address must be at least 5 characters long")
       .max(200, "Address must not exceed 200 characters"),
 
     phoneNumber: z
       .string()
+      .trim()
       .regex(/^\+?[0-9]{10,15}$/, "Phone number must be valid"),
 
-    memberSince: z
-      .string()
-      .optional()
-      .transform((val) => (val ? new Date(val) : undefined)),
+    memberSince: z.date().optional(),
 
     role: z.enum(["admin", "user"]).default("user"),
   })
@@ -50,8 +66,9 @@ export const createUserSchema = z
     path: ["confirmPassword"],
   });
 
+
 export const loginUserSchema = z.object({
-  email: z.string().email("Invalid email format"),
+  email: z.string().trim().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
