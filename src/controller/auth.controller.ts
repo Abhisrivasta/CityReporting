@@ -34,23 +34,29 @@ const setTokensAndSendResponse = (res: Response, user: any, accessToken: string,
 };
 
 export const registerUser = asyncHandler(async (req: Request, res: Response) => {
-    const { username, fullName, email, password, address, phoneNumber, avatar, role } = createUserSchema.parse(req.body);
+  const { confirmPassword, ...userData } = createUserSchema.parse(req.body);
 
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-    if (existingUser) throw new ApiError(400, "User with this email or username already exists");
+  const existingUser = await User.findOne({
+    $or: [{ email: userData.email }, { username: userData.username }],
+  });
+  if (existingUser) {
+    throw new ApiError(400, "User with this email or username already exists");
+  }
 
-    const user = await User.create({
-        username, fullName, email, password, address, phoneNumber, avatar, role, memberSince: new Date(),
-    });
+  const user = await User.create({
+    ...userData,
+    memberSince: new Date(),
+  });
 
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
 
-    user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    await user.save({ validateBeforeSave: false });
+  user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+  await user.save({ validateBeforeSave: false });
 
-    setTokensAndSendResponse(res, user, accessToken, refreshToken);
+  setTokensAndSendResponse(res, user, accessToken, refreshToken);
 });
+
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = loginUserSchema.parse(req.body);

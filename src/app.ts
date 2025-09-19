@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors"
 import { connectDB } from "./config/db.config.ts";
 import userRoutes from "./routes/user.route.ts";
 import userReport from "./routes/report.route.ts"
@@ -10,6 +11,10 @@ const app = express();
 
 
 app.use(express.json());
+app.use(cors({
+  origin: "http://localhost:5173", 
+  credentials: true,
+}));
 
 // Routes
 app.use("/api/users", userRoutes);

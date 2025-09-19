@@ -50,12 +50,12 @@ export const createUserSchema = z
       .string()
       .trim()
       .min(5, "Address must be at least 5 characters long")
-      .max(200, "Address must not exceed 200 characters"),
+      .max(200, "Address must not exceed 200 characters").optional(),
 
     phoneNumber: z
       .string()
       .trim()
-      .regex(/^\+?[0-9]{10,15}$/, "Phone number must be valid"),
+      .regex(/^\+?[0-9]{10,15}$/, "Phone number must be valid").optional(),
 
     memberSince: z.date().optional(),
 
