@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { changePassword, getRefreshToken, getUserProfile, getUserProfileById, loginUser, logoutUser, registerUser, } from "../controller/auth.controller.ts";
-import { validate } from "../middleware/validate.middleware.ts";
 import { createUserSchema,loginUserSchema } from "../validator/user.validate.ts";
 import { verifyJWT } from "../middleware/auth.middleware.ts";
+import { validate } from "../middleware/validate.middleware..ts";
 
 const router = Router();
 

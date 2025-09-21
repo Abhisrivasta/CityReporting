@@ -1,11 +1,11 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config({override:true});
+import express from "express";
 import cors from "cors"
 import { connectDB } from "./config/db.config.ts";
 import userRoutes from "./routes/user.route.ts";
 import userReport from "./routes/report.route.ts"
 
-dotenv.config();
 
 const app = express();
 

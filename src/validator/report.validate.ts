@@ -39,15 +39,5 @@ export const createReportSchema = z.object({
     ward: z.string().optional(),
   }),
 
-  images: z
-    .array(
-      z.object({
-        url: z.string().url("Invalid image URL"),
-        caption: z.string().optional(),
-        type: z.enum(["before", "during", "after"]).optional(),
-      })
-    )
-    .optional(),
-
   isAnonymous: z.boolean().optional().default(false),
 });
