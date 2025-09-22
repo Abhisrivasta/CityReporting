@@ -5,37 +5,42 @@ import {
   getReportByIdHandler,
   getReportHandler,
   updateReportByIdHandler,
+  getReportAnalyticsHandler
 } from "../controller/Report.controller.ts";
-import { verifyJWT } from "../middleware/auth.middleware.ts";
-import { createReportSchema } from "../validator/report.validate.ts";
-import { validate } from "../middleware/validate.middleware..ts";
-import { upload } from "../middleware/uploadMiddleware.ts";
-const router = Router();
 
+import { verifyJWT } from "../middleware/auth.middleware.ts";
+import { isAdmin } from "../middleware/isAdmin.ts";
+import { createReportSchema } from "../validator/report.validate.ts";
+import { upload } from "../middleware/uploadMiddleware.ts";
+import { validate } from "../middleware/validate.middleware.ts";
+
+const router = Router();
 router.post(
   "/",
   verifyJWT,
-  upload.array("images", 5), 
-  validate(createReportSchema), 
-  createReportHandler 
+  upload.array("images", 5),
+  validate(createReportSchema),
+  createReportHandler
 );
 
-// get all reports
-router.get("/", verifyJWT, getReportHandler);
+router.get(
+  "/admin/analytics",
+  verifyJWT,
+  isAdmin,
+  getReportAnalyticsHandler
+);
 
-// get report by id
+router.get("/", verifyJWT, getReportHandler);
 router.get("/:reportId", verifyJWT, getReportByIdHandler);
 
-router.patch("/:reportId",
+router.patch(
+  "/:reportId",
   verifyJWT,
-  upload.array("images",5),
+  upload.array("images", 5),
   validate(createReportSchema),
   updateReportByIdHandler
-)
+);
 
-router.delete("/:reportId",
-  verifyJWT,
-  deleteReportByIdHandler
-)
+router.delete("/:reportId", verifyJWT, deleteReportByIdHandler);
 
 export default router;
