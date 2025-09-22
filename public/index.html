@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart City API 🚀</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212; /* dark background */
+      color: #e0e0e0;       /* light gray text for contrast */
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    header {
+      padding: 50px 20px 30px;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      color: #ff6b81; /* soft highlight */
+    }
+
+    p.tagline {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      color: #cfcfcf;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 30px auto;
+      padding: 25px;
+      background: rgba(30, 30, 30, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      text-align: left;
+      animation: fadeInUp 1.5s ease-in-out;
+    }
+
+    h2 {
+      margin-bottom: 15px;
+      font-size: 1.8rem;
+      color: #ff6b81;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul li {
+      margin: 10px 0;
+      padding-left: 20px;
+      position: relative;
+      color: #d0d0d0;
+    }
+
+    ul li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #ff6b81;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: #ff6b81;
+      color: white;
+      font-size: 1rem;
+      border-radius: 25px;
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #ff4a57;
+      transform: scale(1.05);
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 15px;
+      font-size: 0.9rem;
+      background: rgba(50, 50, 50, 0.5);
+      border-radius: 10px;
+      color: #ccc;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌆 Smart City API 🚀</h1>
+    <p class="tagline">Making cities smarter, safer, and more connected</p>
+    <a href="#about" class="btn">Learn More</a>
+  </header>
+
+  <div class="container" id="about">
+    <h2>About This Project</h2>
+    <p>
+      The <strong>Smart City API</strong> allows citizens to report city issues like potholes, garbage, water leaks, and more.
+      Admins can track and resolve these reports efficiently.
+    </p>
+
+    <h2>Key Features</h2>
+    <ul>
+      <li>User authentication & authorization</li>
+      <li>Report issues with images & location</li>
+      <li>Cloudinary image storage</li>
+      <li>Role-based access for admins & users</li>
+      <li>Real-time updates for report status</li>
+    </ul>
+  </div>
+
+  <footer>
+    🚀 Built with Node.js, Express & MongoDB 
+  </footer>
+</body>
+</html>
