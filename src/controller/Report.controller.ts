@@ -4,6 +4,7 @@ import { Report, ReportPriority, ReportStatus } from "../models/report.model.ts"
 import { ApiResponse } from "../utils/ApiResponse.ts";
 import { ApiError } from "../utils/ApiError.ts";
 import { uploadImagesToCloudinary } from "../utils/uploadMultiple.ts";
+import cloudinary from "../config/cloudinaryConfig.ts";
 
 
 const categoryToDepartmentMap: { [key: string]: string } = {
@@ -97,5 +98,94 @@ export const getReportByIdHandler = asyncHandler(
     return res.status(200).json(
       new ApiResponse(200, report, "Report fetched successfully")
     );
+  }
+);
+
+//update reports by id 
+export const updateReportByIdHandler = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { reportId } = req.params;
+
+    const report = await Report.findById(reportId);
+    if (!report) {
+      return res
+        .status(404)
+        .json(new ApiError(404, "Report not found"));
+    }
+    let imagesForDB;
+    if (req.files && (req.files as Express.Multer.File[]).length > 0) {
+
+      if (report.images && Array.isArray(report.images)) {
+        console.log("🗑️ Deleting old images from Cloudinary...");
+        for (const img of report.images) {
+          if (img.url) {
+            await cloudinary.uploader.destroy(img.url); 
+          }
+        }
+      }
+
+      imagesForDB = await uploadImagesToCloudinary(req.files as Express.Multer.File[]);
+    }
+
+    const {
+      title,
+      description,
+      category,
+      priority,
+      status,
+      location,
+      isAnonymous,
+    } = req.body;
+
+    const department = categoryToDepartmentMap[category] || "City Management";
+
+    const updatedReport = await Report.findByIdAndUpdate(
+      reportId,
+      {
+        title,
+        description,
+        category,
+        priority,
+        status,
+        location,
+        ...(imagesForDB && { images: imagesForDB }),
+        isAnonymous,
+        department,
+      },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedReport, "Report updated successfully"));
+  }
+);
+
+
+
+// delete report by id
+export const deleteReportByIdHandler = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { reportId } = req.params;
+
+    const report = await Report.findById(reportId);
+    if (!report) {
+      return res
+        .status(404)
+        .json(new ApiError(404, "Report not found"));
+    }
+
+    if (report.images && Array.isArray(report.images)) {
+      for (const img of report.images) {
+        if (img.url) {
+          await cloudinary.uploader.destroy(img.url);
+        }
+      }
+    }
+
+    await Report.findByIdAndDelete(reportId);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Report deleted successfully"));
   }
 );
