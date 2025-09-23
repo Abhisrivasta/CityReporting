@@ -8,27 +8,24 @@ import { connectDB } from "./config/db.config.ts";
 import userRoutes from "./routes/user.route.ts";
 import userReport from "./routes/report.route.ts";
 
+
 const app = express();
 
-// Fix for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
 app.use(express.json());
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true,
 }));
 
-// Serve static files from public
 app.use(express.static(path.join(__dirname, "../public")));
 
-// Routes
 app.use("/api/users", userRoutes);
 app.use("/api/reports", userReport);
 
-// Serve index.html at root
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });

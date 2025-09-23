@@ -9,6 +9,7 @@ import { ApiResponse } from "../utils/ApiResponse.ts";
 import { ApiError } from "../utils/ApiError.ts";
 import { uploadImagesToCloudinary } from "../utils/uploadMultiple.ts";
 import cloudinary from "../config/cloudinaryConfig.ts";
+import { Notification } from "../models/notification.ts";
 
 const categoryToDepartmentMap: { [key: string]: string } = {
   pothole: "Public Works",
@@ -27,7 +28,6 @@ export const createReportHandler = asyncHandler(
   async (req: Request, res: Response) => {
     const { title, description, category, location, isAnonymous } = req.body;
 
-    // Use the reusable utility function to handle the upload logic.
     const imagesForDB = await uploadImagesToCloudinary(
       req.files as Express.Multer.File[]
     );
@@ -54,9 +54,29 @@ export const createReportHandler = asyncHandler(
       throw new ApiError(500, "Report could not be created.");
     }
 
-    return res
-      .status(201)
-      .json(new ApiResponse(201, report, "Report created successfully"));
+    const notification = await Notification.create({
+      message: `New report created by ${
+        isAnonymous ? "Anonymous User" : reportedBy
+      }. 
+  \n Title: ${title}. 
+  \n Description: ${description}`,
+      reportedBy,
+      recipientRole: "admin",
+    });
+
+    return res.status(201).json(
+      new ApiResponse(
+        201,
+        {
+          report,
+          lastCheck: {
+            id: notification._id,
+            createdAt: notification.createdAt,
+          },
+        },
+        "Report created successfully"
+      )
+    );
   }
 );
 
@@ -72,7 +92,10 @@ export const getReportByIdHandler = asyncHandler(
         .json(new ApiResponse(404, null, "Report not found"));
     }
 
-    if (report.reportedBy.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    if (
+      report.reportedBy.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
       return res
         .status(403)
         .json(new ApiError(403, "Not authorized to view this report"));
@@ -93,7 +116,10 @@ export const updateReportByIdHandler = asyncHandler(
     if (!report) {
       return res.status(404).json(new ApiError(404, "Report not found"));
     }
-    if (report.reportedBy.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    if (
+      report.reportedBy.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
       return res
         .status(403)
         .json(new ApiError(403, "Not authorized to update this report"));
@@ -157,9 +183,14 @@ export const deleteReportByIdHandler = asyncHandler(
       return res.status(404).json(new ApiError(404, "Report not found"));
     }
 
-if (report.reportedBy.toString() !== req.user._id.toString() && req.user.role !== "admin") {
-  return res.status(403).json(new ApiError(403, "Not authorized to delete this report"));
-}
+    if (
+      report.reportedBy.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json(new ApiError(403, "Not authorized to delete this report"));
+    }
 
     if (report.images && Array.isArray(report.images)) {
       for (const img of report.images) {
@@ -177,7 +208,6 @@ if (report.reportedBy.toString() !== req.user._id.toString() && req.user.role !=
   }
 );
 
-
 // get analytics (admin only)
 export const getReportAnalyticsHandler = asyncHandler(
   async (req: Request, res: Response) => {
@@ -189,40 +219,43 @@ export const getReportAnalyticsHandler = asyncHandler(
 
     // Count by status
     const byStatus = await Report.aggregate([
-      { $group: { _id: "$status", count: { $sum: 1 } } }
+      { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
 
     // Count by category
     const byCategory = await Report.aggregate([
-      { $group: { _id: "$category", count: { $sum: 1 } } }
+      { $group: { _id: "$category", count: { $sum: 1 } } },
     ]);
 
     // Count by priority
     const byPriority = await Report.aggregate([
-      { $group: { _id: "$priority", count: { $sum: 1 } } }
+      { $group: { _id: "$priority", count: { $sum: 1 } } },
     ]);
 
-    // Count by user 
+    // Count by user
     const byUser = await Report.aggregate([
       { $group: { _id: "$reportedBy", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
-      { $limit: 10 } 
+      { $limit: 10 },
     ]);
 
     return res.status(200).json(
-      new ApiResponse(200, {
-        totalReports,
-        byStatus,
-        byCategory,
-        byPriority,
-        byUser,
-      }, "Analytics fetched successfully")
+      new ApiResponse(
+        200,
+        {
+          totalReports,
+          byStatus,
+          byCategory,
+          byPriority,
+          byUser,
+        },
+        "Analytics fetched successfully"
+      )
     );
   }
 );
 
-
-// get all reports 
+// get all reports
 export const getReportHandler = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, status, category, priority } = req.query;
@@ -243,20 +276,67 @@ export const getReportHandler = asyncHandler(
       .skip(skip)
       .limit(Number(limit))
       .sort({ createdAt: -1 })
-      .populate("reportedBy", "name email role"); 
+      .populate("reportedBy", "name email role");
 
     const total = await Report.countDocuments(filters);
 
     return res.status(200).json(
-      new ApiResponse(200, {
-        reports,
-        pagination: {
-          total,
-          page: Number(page),
-          limit: Number(limit),
-          totalPages: Math.ceil(total / Number(limit)),
+      new ApiResponse(
+        200,
+        {
+          reports,
+          pagination: {
+            total,
+            page: Number(page),
+            limit: Number(limit),
+            totalPages: Math.ceil(total / Number(limit)),
+          },
         },
-      }, "Reports fetched successfully")
+        "Reports fetched successfully"
+      )
     );
   }
 );
+
+//notification
+export const newNotification = asyncHandler(async (req: Request, res: Response) => {
+  const { lastCheck } = req.query; 
+  const timeout = 15000; 
+  const interval = 1000;  
+  const startTime = Date.now();
+
+  const query: any = { recipientRole: "admin" };
+
+  if (lastCheck) {
+    query.createdAt = { $gt: new Date(lastCheck as string) };
+  } else {
+    query.seen = false;
+  }
+
+  const poll = async () => {
+    const notifications = await Notification.find(query).sort({ createdAt: 1 });
+    if (notifications.length > 0 || Date.now() - startTime >= timeout) {
+      return res.status(200).json(
+        new ApiResponse(
+          200,
+          notifications,
+          "Notifications fetched successfully"
+        )
+      );
+    } else {
+      setTimeout(poll, interval);
+    }
+  };
+
+  poll(); 
+});
+
+
+export const markNotificationAsSeen = asyncHandler(async (req: Request, res: Response) => {
+  const { notificationId } = req.body;
+
+  const notification = await Notification.findByIdAndUpdate(notificationId, { seen: true }, { new: true });
+
+  return res.status(200).json({ success: true, notification });
+});
+
